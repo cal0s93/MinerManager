@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
 
 namespace MinerManager
 {
@@ -76,14 +77,19 @@ namespace MinerManager
                 Console.WriteLine(n + " " + line.desc + " " + line.path + " " + line.param);
             }
             n = Console.ReadKey().KeyChar - 48;
-            var proc = new Process();
-            proc.StartInfo.FileName = cfg[n].path;
-            proc.StartInfo.Arguments = cfg[n].param;
+
+
+
+
+            //proc.StartInfo.Arguments = cfg[n-1].param;
+            string cmd = "'" + cfg[n - 1].path + "' " + cfg[n - 1].param; 
+            Thread proc = new Thread(() => { MinerManger.ParallelRun.runCommand(cmd); });            
+            proc.IsBackground = true;
+            proc.Priority = ThreadPriority.AboveNormal;
+            proc.IsBackground = true;
             proc.Start();
-            //proc.WaitForExit();
-            //var exitCode = proc.ExitCode;
             //proc.Close();
-            
+
         }
 
 
