@@ -12,7 +12,7 @@ namespace MinerManger
     public static class ParallelRun
     {
         static string d = null;
-
+         
         public static void runCommand(string command)
         {
             string starttime;
