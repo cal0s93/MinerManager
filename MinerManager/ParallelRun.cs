@@ -21,7 +21,10 @@ namespace MinerManger
             //* Create your Process
             Process process = new Process();
             process.StartInfo.FileName = "cmd.exe";
+            process.StartInfo.WorkingDirectory = command.Substring(0, command.LastIndexOf("\\"));
+            command = command.Substring(command.LastIndexOf("\\") + 1, command.Length - command.LastIndexOf("\\") - 1);
             process.StartInfo.Arguments = "/c" + command;
+            
 
             starttime = "Started at " + DateTime.Now + "\n";
 

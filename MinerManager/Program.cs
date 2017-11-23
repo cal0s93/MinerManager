@@ -7,8 +7,10 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 
+
 namespace MinerManager
 {
+   
     class Program
     {
         protected static int origRow;
@@ -82,17 +84,18 @@ namespace MinerManager
 
 
             //proc.StartInfo.Arguments = cfg[n-1].param;
-            string cmd = "'" + cfg[n - 1].path + "' " + cfg[n - 1].param; 
+            string cmd =  cfg[n - 1].path + " " + cfg[n - 1].param; 
             Thread proc = new Thread(() => { MinerManger.ParallelRun.runCommand(cmd); });            
             proc.IsBackground = true;
             proc.Priority = ThreadPriority.AboveNormal;
             proc.IsBackground = true;
             proc.Start();
+            
             //proc.Close();
 
         }
 
-
+        
 
         public static configuration[] ReadConfig()
         {
@@ -251,6 +254,7 @@ namespace MinerManager
             }
         }
 
+
         public enum AlgorithmType : int
         {
             // dual algos for grouping
@@ -326,6 +330,5 @@ namespace MinerManager
             Skunk = 29
             #endregion // NiceHashAPI
         }
-        
     }
 }
