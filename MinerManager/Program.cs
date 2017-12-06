@@ -115,22 +115,20 @@ namespace MinerManager
             do
             {
                 aux_s = Console.ReadLine();
-            } while (int.TryParse(aux_s, out n) == false);
+            } while (int.TryParse(aux_s, out n) == false & n<= 3 );
             switch (n)
             {
                 case 1:
                     xmladdrow(miner);
-                    xmlwriteconf();
                     break;
                 case 2:
                     xmladdrow(pool);
-                    xmlwriteconf();
                     break;
                 case 3:
                     xmladdrow(wallet);
-                    xmlwriteconf();
                     break;
             }
+            xmlwriteconf();
         }
 
         static void xmladdrow(DataSet data)
@@ -201,7 +199,7 @@ namespace MinerManager
             do
             {
                 aux_s = Console.ReadLine();
-            } while (int.TryParse(aux_s, out n) == false);
+            } while (int.TryParse(aux_s, out n) == false & n <= 3);
             switch (n)
             {
                 case 1:
@@ -214,38 +212,44 @@ namespace MinerManager
                     EditRow(wallet);
                     break;
             }
+            xmlwriteconf();
         }
 
         static void EditRow(DataSet data)
         {
-            Console.Clear();
+            
+            
+            string aux_s;
+            int n = 0;
             int i = 0;
-            int i2 = 0;
-            
-            foreach (DataRow row in data.Tables[0].Rows)
+            do
             {
-                i2 = 0;
-                foreach (var col in row.ItemArray)
+                i = 0;
+                int i2 = 0;
+                Console.Clear();
+                foreach (DataRow row in data.Tables[0].Rows)
                 {
-                    WriteAt(col.ToString(), i2 + 2, i);
-                    i2 = i2 + 20;
+                    i2 = 0;
+                    foreach (var col in row.ItemArray)
+                    {
+                        WriteAt(col.ToString(), i2 + 2, i);
+                        i2 = i2 + 20;
+                    }
+                    i++;
+                    WriteAt(i.ToString(), 0, i - 1);
                 }
-                i++;
-                WriteAt(i.ToString(), 0, i - 1);
-            }
-
-
-            WriteAt("Edit:", 0, i);
-            int.TryParse(Console.ReadLine(), out i) ;
-            
-            foreach (var col in data.Tables[0].Rows[0].ItemArray)
+                WriteAt("Edit:", 0, i);
+                aux_s = Console.ReadLine();
+            } while (int.TryParse(aux_s, out n) == false || n > i);
+            i = 0;
+            foreach (var col in data.Tables[0].Rows[n-1].ItemArray)
             {
-                Console.WriteLine("Set : " + data.Tables[0].Rows[0].Table.Columns[i]);
+                Console.WriteLine("Set : " + data.Tables[0].Rows[0].Table.Columns[n-1]);
                 Console.WriteLine(col);
-                data.Tables[0].Rows[0][i] = Console.ReadLine();
+                data.Tables[0].Rows[n-1][i] = Console.ReadLine();
                 i++;
             }
-            xmlwriteconf();
+            i = i;
         }
 
         protected static void WriteAt(string s, int x, int y)
