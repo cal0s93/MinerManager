@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using System.Threading;
-
+using System.Xml;
+using System.Data;
 
 namespace MinerManager
 {
@@ -15,7 +16,9 @@ namespace MinerManager
     {
         protected static int origRow;
         protected static int origCol;
-
+        public static DataSet miner = new DataSet();
+        public static DataSet pool = new DataSet();
+        public static DataSet wallet = new DataSet();
         public configuration[] cfg { get; private set; }
 
         public struct configuration
@@ -27,7 +30,10 @@ namespace MinerManager
         
         static void Main(string[] args)
         {
-            configuration[] cfg = ReadConfig();
+            xmlreadconf();
+            
+            
+            //configuration[] cfg = ReadConfig();
             int i = 0;
             int n = 0;
             while (i < 1)
@@ -51,20 +57,22 @@ namespace MinerManager
                 switch (n)
                 {
                     case 1:
-                        WriteConfig();
-                        cfg = ReadConfig();
+
+                        xmladdconfig();
                         break;
                     case 2:
-                        EditConf(cfg);
+                        xmleditconf();
+
                         break;
                     case 3:
-                        StartMiner(cfg);
+                      //  StartMiner(cfg);
                         break;
                 }
 
 
             }
         }
+
 
         
 
@@ -95,104 +103,151 @@ namespace MinerManager
 
         }
 
-        
-
-        public static configuration[] ReadConfig()
-        {
-            int n = 0;
-            string[] aux_s = File.ReadAllLines(Directory.GetCurrentDirectory() + @"\Mining.conf");
-            configuration[] cfg = new configuration[aux_s.Length];
-            foreach (string line in aux_s)
-            {
-                int i = 0;
-                int aux_i = 0;
-                
-                aux_i = line.IndexOf(";", i);
-                Int32.TryParse(line.Substring(i, aux_i), out n);
-                i = aux_i;
-                aux_i = line.IndexOf(";", i + 1)-i;
-                cfg[n-1].path = line.Substring(i +1, aux_i - 1 ) ;
-
-                i = i + aux_i;
-                aux_i = line.IndexOf(";", i + 1) - i;
-                cfg[n-1].param = line.Substring(i+1, aux_i - 1);
-
-                i = i + aux_i;
-                aux_i = line.IndexOf(";", i +1) - i;
-                cfg[n-1].desc = line.Substring(i+1, aux_i - 1);
-            }
-            return (cfg); 
-        }
-        static void EditConf(configuration[] cfg)
-        {            
-            int n = 0;
-            while ( n <= cfg.Length)
-            {
-                Console.Clear();
-                n = 0;
-                foreach (configuration line in cfg)
-                {
-                    n++;
-                    Console.WriteLine(n +" "+ line.desc + " " + line.path + " " + line.param);
-                }
-                n = 0;
-                n = Console.ReadKey().KeyChar-48;
-                if(n <= cfg.Length&n>0)
-                {
-                    Console.WriteLine(" Insert path Miner:"+ cfg[n-1].path);
-                    cfg[n-1].path = Console.ReadLine();
-                    Console.WriteLine("Insert param:" + cfg[n-1].param);
-                    cfg[n-1].param = Console.ReadLine();
-                    Console.WriteLine("Insert desc:" + cfg[n-1].desc);
-                    cfg[n-1].desc = Console.ReadLine();
-                }
-
-            }
-            n = 0;
-            var file = new System.IO.StreamWriter(Directory.GetCurrentDirectory() + @"\Mining.conf");
-            foreach (configuration line in cfg)
-            {
-                n++;
-                file.WriteLine(n+";"+line.path+";"+line.param+";"+line.desc+";");
-            }
-            file.Close();
-        }
-        static void WriteConfig()
+        static void xmladdconfig()
         {
             Console.Clear();
-            string[] conf = { };
-            int i = 0;
+            int n = 0;
             string aux_s;
-
-            while (i < 1)
+            WriteAt("1) Add Miner", 0, 0);
+            WriteAt("2) Add Pool ", 0, 1);
+            WriteAt("3) Add Wallet", 0, 2);
+            WriteAt("Select: ", 3, 3);
+            do
             {
-                conf = File.ReadAllLines(Directory.GetCurrentDirectory() + @"\Mining.conf");
-                Console.WriteLine("Insert path Miner:");
                 aux_s = Console.ReadLine();
-                Array.Resize(ref conf, conf.Length + 1);
-                conf[conf.Length - 1] = conf.Length + ";" + aux_s;
-                Console.WriteLine("insert parameter:");
-                aux_s = Console.ReadLine();
-                conf[conf.Length - 1] = conf[conf.Length - 1] + ";" + aux_s ;
-                Console.WriteLine("insert description:");
-                aux_s = Console.ReadLine();
-                conf[conf.Length - 1] = conf[conf.Length - 1] + ";" + aux_s +";";
-                Console.WriteLine("Exit? (s/n);");
-                aux_s = Console.ReadLine();
-                if (aux_s != "y" || aux_s != "Y")
-                {
-                    i = 2;
-                }                 
+            } while (int.TryParse(aux_s, out n) == false);
+            switch (n)
+            {
+                case 1:
+                    xmladdrow(miner);
+                    xmlwriteconf();
+                    break;
+                case 2:
+                    xmladdrow(pool);
+                    xmlwriteconf();
+                    break;
+                case 3:
+                    xmladdrow(wallet);
+                    xmlwriteconf();
+                    break;
+            }
+        }
+
+        static void xmladdrow(DataSet data)
+        {
+            int i = 0;
+            Console.Clear();
+            DataRow row = data.Tables[0].NewRow();
+            foreach (var col in row.ItemArray)
+            {
+                Console.WriteLine(data.Tables[0].Rows[0].Table.Columns[i]);
+                row[i] = Console.ReadLine();
+                i++;
             }
             
-            var file = new System.IO.StreamWriter(Directory.GetCurrentDirectory() + @"\Mining.conf");
-            foreach (string line in conf)
+            data.Tables[0].Rows.Add(row);
+            
+        }
+
+
+        
+        static void xmlwriteconf()
+        {
+            try
             {
-                file.WriteLine(line);
+                miner.WriteXml(Directory.GetCurrentDirectory() + @"\Miner.xml");
+                Console.WriteLine("XML data written successfully to " + Directory.GetCurrentDirectory() + @"\Miner.xml");
+                pool.WriteXml(Directory.GetCurrentDirectory() + @"\Pool.xml");
+                Console.WriteLine("XML data written successfully to " + Directory.GetCurrentDirectory() + @"\Pool.xml");
+                wallet.WriteXml(Directory.GetCurrentDirectory() + @"\Wallet.xml");
+                Console.WriteLine("XML data written successfully to " + Directory.GetCurrentDirectory() + @"\Wallet.xml");
             }
-            file.Close();
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: " + ex.Message);
+            }
+           
+        }
+        static void xmlreadconf()
+        {
+            try
+            {
+                miner.ReadXml(Directory.GetCurrentDirectory() + @"\Miner.xml");
+                pool.ReadXml(Directory.GetCurrentDirectory() + @"\Pool.xml");
+                wallet.ReadXml(Directory.GetCurrentDirectory() + @"\Pool.xml");
+                Console.WriteLine("XML data read successful");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: " + ex.Message);
+            }
         }
         
+        static void xmleditconf()
+        {
+            Console.Clear();
+            origRow = Console.CursorTop;
+            origCol = Console.CursorLeft;
+
+            int i = 0;
+            int i2 = 0;
+            int n = 0;
+            string aux_s;
+
+            WriteAt("1) Edit Miner", 0, 0);
+            WriteAt("2) Edit Pool ", 0, 1);
+            WriteAt("3) Edit Wallet", 0, 2);
+            WriteAt("Select: ", 3, 3);
+            do
+            {
+                aux_s = Console.ReadLine();
+            } while (int.TryParse(aux_s, out n) == false);
+            switch (n)
+            {
+                case 1:
+                    EditRow(miner);
+                    break;
+                case 2:
+                    EditRow(pool);
+                    break;
+                case 3:
+                    EditRow(wallet);
+                    break;
+            }
+        }
+
+        static void EditRow(DataSet data)
+        {
+            Console.Clear();
+            int i = 0;
+            int i2 = 0;
+            
+            foreach (DataRow row in data.Tables[0].Rows)
+            {
+                i2 = 0;
+                foreach (var col in row.ItemArray)
+                {
+                    WriteAt(col.ToString(), i2 + 2, i);
+                    i2 = i2 + 20;
+                }
+                i++;
+                WriteAt(i.ToString(), 0, i - 1);
+            }
+
+
+            WriteAt("Edit:", 0, i);
+            int.TryParse(Console.ReadLine(), out i) ;
+            
+            foreach (var col in data.Tables[0].Rows[0].ItemArray)
+            {
+                Console.WriteLine("Set : " + data.Tables[0].Rows[0].Table.Columns[i]);
+                Console.WriteLine(col);
+                data.Tables[0].Rows[0][i] = Console.ReadLine();
+                i++;
+            }
+            xmlwriteconf();
+        }
+
         protected static void WriteAt(string s, int x, int y)
         {
             try
