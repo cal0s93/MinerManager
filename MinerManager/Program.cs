@@ -19,14 +19,9 @@ namespace MinerManager
         public static DataSet miner = new DataSet();
         public static DataSet pool = new DataSet();
         public static DataSet wallet = new DataSet();
-        public configuration[] cfg { get; private set; }
+        
 
-        public struct configuration
-        {
-            public string path;
-            public string param;
-            public string desc; 
-        };
+        
         
         static void Main(string[] args)
         {
@@ -65,7 +60,8 @@ namespace MinerManager
 
                         break;
                     case 3:
-                      //  StartMiner(cfg);
+                        // 
+                        StartMiner();
                         break;
                 }
 
@@ -77,28 +73,63 @@ namespace MinerManager
         
 
 
-        static void StartMiner(configuration[] cfg)
+        static void StartMiner()
         {
             Console.Clear();
             int n = 0;
-            foreach (configuration line in cfg)
+            foreach (DataRow row in miner.Tables[0].Rows )
             {
                 n++;
-                Console.WriteLine(n + " " + line.desc + " " + line.path + " " + line.param);
+                WriteAt(n + " ", 0, n);
+
+                WriteAt(row[0].ToString(), 2, n);
+                WriteAt(row[1].ToString(), 20, n);
+                WriteAt(row[2].ToString(), 35, n);
+                
             }
+            WriteAt("Select: ", 0, n+1);
+            n = Console.ReadKey().KeyChar - 48;
+            Console.WriteLine(miner.Tables[0].Rows[n - 1][2].ToString());
+
+
+            string filePath = miner.Tables[0].Rows[n-1][2].ToString();
+            string arg = miner.Tables[0].Rows[n - 1][3].ToString();
+
+
+            Console.Clear();
+            n = 0;
+            foreach (DataRow row in pool.Tables[0].Rows)
+            {
+                n++;
+                WriteAt(n + " ", 0, n);
+
+                WriteAt(row[0].ToString(), 2, n);
+                WriteAt(row[2].ToString(), 20, n);
+                WriteAt(row[3].ToString(), 35, n);
+
+            }
+            WriteAt("Select: ", 0, n + 1);
             n = Console.ReadKey().KeyChar - 48;
 
+            arg.Replace("WALLET",wallet.Tables[0].Rows[n - 1][1].ToString()) ;
+            arg.Replace("POOL",pool.Tables[0].Rows[n - 1][0].ToString());
+            arg.Replace("PORTA",pool.Tables[0].Rows[n - 1][3].ToString());
+            arg.Replace("PASSW",pool.Tables[0].Rows[n - 1][4].ToString());
+            arg.Replace("RIG","2x970gtx");
 
-
+            ProcessStartInfo psi = new ProcessStartInfo(filePath, arg);
+            psi.WindowStyle = ProcessWindowStyle.Normal;
+            psi.UseShellExecute = true;
+            using (Process.Start(psi)) ; 
 
             //proc.StartInfo.Arguments = cfg[n-1].param;
-            string cmd =  cfg[n - 1].path + " " + cfg[n - 1].param; 
-            Thread proc = new Thread(() => { MinerManger.ParallelRun.runCommand(cmd); });            
-            proc.IsBackground = true;
-            proc.Priority = ThreadPriority.AboveNormal;
-            proc.IsBackground = true;
-            proc.Start();
-            
+            //string cmd =  cfg[n - 1].path + " " + cfg[n - 1].param; 
+            //Thread proc = new Thread(() => { MinerManger.ParallelRun.runCommand(cmd); });            
+            //proc.IsBackground = true;
+            //proc.Priority = ThreadPriority.AboveNormal;
+            //proc.IsBackground = true;
+            //proc.Start();
+
             //proc.Close();
 
         }
@@ -172,7 +203,7 @@ namespace MinerManager
             {
                 miner.ReadXml(Directory.GetCurrentDirectory() + @"\Miner.xml");
                 pool.ReadXml(Directory.GetCurrentDirectory() + @"\Pool.xml");
-                wallet.ReadXml(Directory.GetCurrentDirectory() + @"\Pool.xml");
+                wallet.ReadXml(Directory.GetCurrentDirectory() + @"\Wallet.xml");
                 Console.WriteLine("XML data read successful");
             }
             catch (Exception ex)
@@ -187,8 +218,7 @@ namespace MinerManager
             origRow = Console.CursorTop;
             origCol = Console.CursorLeft;
 
-            int i = 0;
-            int i2 = 0;
+            
             int n = 0;
             string aux_s;
 
@@ -246,10 +276,10 @@ namespace MinerManager
             {
                 Console.WriteLine("Set : " + data.Tables[0].Rows[0].Table.Columns[n-1]);
                 Console.WriteLine(col);
-                data.Tables[0].Rows[n-1][i] = Console.ReadLine();
+                data.Tables[0].Rows[n - 1][i] = Console.ReadLine();
                 i++;
             }
-            i = i;
+            
         }
 
         protected static void WriteAt(string s, int x, int y)
